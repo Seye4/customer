@@ -4,11 +4,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { Link, router } from 'expo-router';
@@ -142,13 +142,13 @@ export default function RegisterScreen(): React.JSX.Element {
               editable={!submitting}
               style={styles.input}
             />
-            <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                 size={20}
                 color="#6B7280"
               />
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* Confirm Password Input */}
@@ -169,7 +169,7 @@ export default function RegisterScreen(): React.JSX.Element {
               editable={!submitting}
               style={styles.input}
             />
-            <Pressable
+            <TouchableOpacity
               onPress={() => setShowConfirmPassword(!showConfirmPassword)}
               style={styles.eyeIcon}>
               <Ionicons
@@ -177,33 +177,30 @@ export default function RegisterScreen(): React.JSX.Element {
                 size={20}
                 color="#6B7280"
               />
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* Primary Action Button */}
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.8}
             onPress={handleRegister}
             disabled={submitting}
-            style={({ pressed }) => [
-              styles.button,
-              submitting && styles.buttonDisabled,
-              pressed && !submitting && styles.buttonPressed,
-            ]}>
+            style={[styles.button, submitting && styles.buttonDisabled]}>
             {submitting ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <Text style={styles.buttonText}>Create Account</Text>
             )}
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {/* Footer Navigation */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
           <Link href="/(auth)/login" asChild>
-            <Pressable>
+            <TouchableOpacity>
               <Text style={styles.linkText}>Sign in</Text>
-            </Pressable>
+            </TouchableOpacity>
           </Link>
         </View>
       </ScrollView>
@@ -218,12 +215,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 30,
-    paddingBottom: 60,
+    paddingTop: 40,
+    paddingBottom: 40,
     flexGrow: 1,
   },
   headerContainer: {
-    marginBottom: 28,
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,
@@ -255,11 +252,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 52,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
   },
   inputIcon: {
     marginRight: 10,
@@ -274,25 +266,18 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   button: {
+    width: '100%',
+    minHeight: 52,
     backgroundColor: '#2563EB',
     borderRadius: 12,
-    height: 52,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 28,
     marginBottom: 10,
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  buttonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.995 }],
+    zIndex: 10,
   },
   buttonDisabled: {
-    opacity: 0.65,
+    backgroundColor: '#93C5FD',
   },
   buttonText: {
     color: '#FFFFFF',
@@ -303,7 +288,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 24,
   },
   footerText: {
     fontSize: 14,

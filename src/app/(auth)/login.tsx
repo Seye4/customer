@@ -4,11 +4,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { Link, router } from 'expo-router';
@@ -107,39 +107,36 @@ export default function LoginScreen(): React.JSX.Element {
               editable={!submitting}
               style={styles.input}
             />
-            <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                 size={20}
                 color="#6B7280"
               />
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* Primary Action Button */}
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.8}
             onPress={handleLogin}
             disabled={submitting}
-            style={({ pressed }) => [
-              styles.button,
-              submitting && styles.buttonDisabled,
-              pressed && !submitting && styles.buttonPressed,
-            ]}>
+            style={[styles.button, submitting && styles.buttonDisabled]}>
             {submitting ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <Text style={styles.buttonText}>Sign In</Text>
             )}
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {/* Footer Navigation */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
           <Link href="/(auth)/register" asChild>
-            <Pressable>
+            <TouchableOpacity>
               <Text style={styles.linkText}>Create an account</Text>
-            </Pressable>
+            </TouchableOpacity>
           </Link>
         </View>
       </ScrollView>
@@ -155,12 +152,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 60,
+    paddingBottom: 40,
     flexGrow: 1,
     justifyContent: 'center',
   },
   headerContainer: {
-    marginBottom: 28,
+    marginBottom: 24,
   },
   title: {
     fontSize: 32,
@@ -181,7 +178,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     marginBottom: 6,
-    marginTop: 10,
+    marginTop: 12,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -192,11 +189,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 52,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
   },
   inputIcon: {
     marginRight: 10,
@@ -211,25 +203,19 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   button: {
+    width: '100%',
+    minHeight: 52,
     backgroundColor: '#2563EB',
     borderRadius: 12,
-    height: 52,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 28,
     marginBottom: 10,
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  buttonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.995 }],
+    overflow: 'visible',
+    zIndex: 10,
   },
   buttonDisabled: {
-    opacity: 0.65,
+    backgroundColor: '#93C5FD',
   },
   buttonText: {
     color: '#FFFFFF',
@@ -240,7 +226,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 28,
   },
   footerText: {
     fontSize: 14,
