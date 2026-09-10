@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
@@ -71,17 +71,7 @@ export default function SearchingScreen(): React.JSX.Element {
     if (searchStopped) return;
 
     const interval = setInterval(() => {
-      setSecondsElapsed((prev) => {
-        const nextTime = prev + 1;
-
-        // Automatically stop searching when maximum duration is reached
-        if (nextTime >= MAX_SEARCH_DURATION_SECONDS) {
-          clearInterval(interval);
-          handleSearchTimeout();
-        }
-
-        return nextTime;
-      });
+      setSecondsElapsed((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -96,7 +86,7 @@ export default function SearchingScreen(): React.JSX.Element {
   /*
    * 3. TIMEOUT HANDLER
    */
-  const handleSearchTimeout = async (): Promise<void> => {
+  const handleSearchTimeout = useCallback(async (): Promise<void> => {
     setSearchStopped(true);
 
     if (bookingId && token) {
@@ -120,7 +110,13 @@ export default function SearchingScreen(): React.JSX.Element {
       ],
       { cancelable: false }
     );
-  };
+  }, [bookingId, token]);
+
+  useEffect(() => {
+    if (secondsElapsed >= MAX_SEARCH_DURATION_SECONDS && !searchStopped) {
+      void handleSearchTimeout();
+    }
+  }, [secondsElapsed, searchStopped, handleSearchTimeout]);
 
   /*
    * 4. DISPATCH VENDORS & CHECK STATUS POLLING
@@ -129,24 +125,38 @@ export default function SearchingScreen(): React.JSX.Element {
     if (!bookingId || !token || searchStopped) return;
 
     const numericBookingId = Number(bookingId);
+    if (!Number.isSafeInteger(numericBookingId) || numericBookingId <= 0) {
+      setSearchStopped(true);
+      Alert.alert('Invalid booking', 'Please create a new booking.');
+      return;
+    }
+    let disposed = false;
+    let inFlight = false;
 
     const triggerVendorSearch = async () => {
+      if (inFlight || disposed) return;
+      inFlight = true;
       try {
         console.log(`[SearchingScreen] Triggering findVendors for Booking #${numericBookingId}...`);
         const response = await findVendors(numericBookingId, token);
 
-        if (response?.success && typeof response.vendors_found === 'number') {
-          setVendorCount(response.vendors_found);
+        if (!disposed && response?.success && typeof response.vendors_found === 'number') {
+          setVendorCount((count) => count + response.vendors_found);
         }
       } catch (error) {
         console.error('[SearchingScreen] Error triggering findVendors:', error);
+      } finally {
+        inFlight = false;
       }
     };
 
     triggerVendorSearch();
     const searchInterval = setInterval(triggerVendorSearch, 10000);
 
-    return () => clearInterval(searchInterval);
+    return () => {
+      disposed = true;
+      clearInterval(searchInterval);
+    };
   }, [bookingId, token, searchStopped]);
 
   /*

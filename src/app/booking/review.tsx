@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
-import { createBooking, findVendors, uploadBookingMedia } from '../../api/bookings';
+import { createBooking, uploadBookingMedia } from '../../api/bookings';
 import { ServiceType } from '../../types/booking';
 
 // Define the shape of your route params without extends Record
@@ -38,15 +38,6 @@ export default function ReviewBookingScreen(): React.JSX.Element {
 
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // Helper mapping object
-  const serviceTypeMap: Record<string, string> = {
-    tow: 'tow_driver',
-    ride: 'ride_driver',
-  };
-
-  const selectedService = params.service ?? '';
-  const backendServiceType = serviceTypeMap[selectedService] ?? selectedService ?? 'tow_driver';
-
   function serviceName(service?: string): string {
     if (!service) return 'N/A';
     switch (service) {
@@ -66,7 +57,7 @@ export default function ReviewBookingScreen(): React.JSX.Element {
       Alert.alert('Session expired', 'Please sign in again.');
       return;
     }
-    console.log(token);
+    if (submitting) return;
 
     let bookingId: number;
 
@@ -91,7 +82,10 @@ export default function ReviewBookingScreen(): React.JSX.Element {
       });
 
       // Standardize response payload ID field
-      bookingId = Number(response?.booking_id ?? response?.data?.id);
+      bookingId = Number(response?.booking_id ?? response?.data?.booking_id ?? response?.data?.id);
+      if (!response.success || !Number.isSafeInteger(bookingId) || bookingId <= 0) {
+        throw new Error(response.message || 'The server did not return a valid booking ID.');
+      }
 
       // Step 2: Upload media attachments if any exist
       if (media.length > 0) {
@@ -109,7 +103,7 @@ export default function ReviewBookingScreen(): React.JSX.Element {
 
       // Step 3: Navigate to searching screen
       router.replace({
-        pathname: './searching',
+        pathname: '/booking/searching',
         params: {
           bookingId: String(bookingId),
         },
