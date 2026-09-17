@@ -54,7 +54,7 @@ export default function RegisterScreen(): React.JSX.Element {
 
       await register(name.trim(), email.trim(), password, phone.trim() || undefined);
 
-      router.replace('/(customer)/home');
+      router.replace('/(customer)/');
     } catch (error: any) {
       Alert.alert('Registration failed', error?.message || 'Unable to create account.');
     } finally {

@@ -5,26 +5,46 @@ export type UserLocation = {
   longitude: number;
 };
 
-export async function requestLocationPermission() {
-  const { status } = await Location.requestForegroundPermissionsAsync();
+/**
+ * Check whether the device's Location Services are enabled.
+ */
+export async function isLocationServicesEnabled(): Promise<boolean> {
+  return await Location.hasServicesEnabledAsync();
+}
 
-  if (status !== 'granted') {
+/**
+ * Request foreground location permission.
+ */
+export async function requestLocationPermission(): Promise<boolean> {
+  const servicesEnabled = await isLocationServicesEnabled();
+
+  if (!servicesEnabled) {
+    throw new Error(
+      'Location services are disabled. Please enable Location Services on your device.'
+    );
+  }
+
+  const permission = await Location.requestForegroundPermissionsAsync();
+
+  if (permission.status !== Location.PermissionStatus.GRANTED) {
     throw new Error('Location permission is required to use this service.');
   }
 
   return true;
 }
 
+/**
+ * Get the user's current location.
+ */
 export async function getCurrentLocation(): Promise<UserLocation> {
   await requestLocationPermission();
 
   const location = await Location.getCurrentPositionAsync({
-    accuracy: Location.Accuracy.High,
+    accuracy: Location.Accuracy.Balanced,
   });
 
   return {
     latitude: location.coords.latitude,
-
     longitude: location.coords.longitude,
   };
 }
