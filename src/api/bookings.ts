@@ -81,6 +81,20 @@ export async function cancelBooking(
   });
 } */
 
+/* * ============================================ * BOOKING STATUS * ============================================ */
+export type BookingStatus =
+  | 'pending'
+  | 'searching'
+  | 'vendor_assigned'
+  | 'accepted'
+  | 'arriving'
+  | 'arrived'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled'
+  | 'rejected'
+  | 'no_vendor';
+
 export async function uploadBookingMedia(
   token: string,
 
@@ -360,4 +374,38 @@ export async function getBookingDetails(
 
     token,
   });
+}
+
+// booking detail
+export interface BookingStatusVendor {
+  id: number;
+  name: string | null;
+  phone: string | null;
+  rating: number | string | null;
+}
+
+export interface BookingStatusResponse {
+  success: boolean;
+  message: string;
+  data: {
+    booking_id: number;
+    booking_number: string;
+    status: BookingStatus;
+    service_type: string;
+    vendor_id: number | null;
+    vendor: BookingStatusVendor | null;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+/** * Get the current status of one booking. * * Calls: * * GET /bookings/status.php?booking_id=66 */
+export async function getBookingStatus(
+  token: string,
+  bookingId: number
+): Promise<BookingStatusResponse> {
+  return apiRequest<BookingStatusResponse>(
+    `bookings/status.php?booking_id=${encodeURIComponent(String(bookingId))}`,
+    { method: 'GET', token }
+  );
 }

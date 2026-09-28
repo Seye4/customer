@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
-import { cancelBooking, findVendors } from '../../api/bookings';
+import { cancelBooking, findVendors, getBookingStatus } from '../../api/bookings';
 
 type SearchingParams = {
   bookingId?: string;
@@ -121,6 +121,7 @@ export default function SearchingScreen(): React.JSX.Element {
   /*
    * 4. DISPATCH VENDORS & CHECK STATUS POLLING
    */
+
   useEffect(() => {
     if (!bookingId || !token || searchStopped) return;
 
@@ -130,13 +131,29 @@ export default function SearchingScreen(): React.JSX.Element {
       Alert.alert('Invalid booking', 'Please create a new booking.');
       return;
     }
+
     let disposed = false;
     let inFlight = false;
 
-    const triggerVendorSearch = async () => {
+    const checkStatusAndSearch = async () => {
       if (inFlight || disposed) return;
       inFlight = true;
+
       try {
+        // 1. Check booking status first
+        const statusResponse = await getBookingStatus(token, numericBookingId);
+
+        if (!disposed && statusResponse?.data?.status === 'accepted') {
+          setSearchStopped(true);
+          // Navigate to active job / tracking screen
+          router.replace({
+            pathname: './progress',
+            params: { bookingId: numericBookingId },
+          });
+          return;
+        }
+
+        // 2. If still pending, keep searching/broadcasting
         console.log(`[SearchingScreen] Triggering findVendors for Booking #${numericBookingId}...`);
         const response = await findVendors(numericBookingId, token);
 
@@ -144,14 +161,14 @@ export default function SearchingScreen(): React.JSX.Element {
           setVendorCount((count) => count + response.vendors_found);
         }
       } catch (error) {
-        console.error('[SearchingScreen] Error triggering findVendors:', error);
+        console.error('[SearchingScreen] Error in polling loop:', error);
       } finally {
         inFlight = false;
       }
     };
 
-    triggerVendorSearch();
-    const searchInterval = setInterval(triggerVendorSearch, 10000);
+    checkStatusAndSearch();
+    const searchInterval = setInterval(checkStatusAndSearch, 5000); // 5s interval for faster response
 
     return () => {
       disposed = true;

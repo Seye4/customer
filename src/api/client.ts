@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// const API_URL = 'http://10.0.0.106/autofix/backend/api';
-const API_URL = __DEV__
+const API_URL = 'http://10.0.0.106/autofix/backend/api';
+/* const API_URL = __DEV__
   ? 'https://seveinteractive.com/api' // Local URL (e.g., http://localhost:8000 or http://10.0.2.2/api for Android emulator)
-  : 'https://seveinteractive.com/api'; // Production URL
+  : 'https://seveinteractive.com/api'; // Production URL */
 
 type RequestOptions = {
   method?: string;
